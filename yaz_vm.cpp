@@ -107,7 +107,7 @@ void init_code()
 	prg_main.const_val[0] = 36;//c0
 
 
-	prg_main.instrs[0] = { encode_op(F_CALL,T_FUNC,T_CONST,T_TEMP),{1,0,0} };		// t0 = func_tab[1] (c0)= fib(c0)
+	prg_main.instrs[0] = { encode_op(F_CALL,T_FUNC,T_CONST,T_TEMP),{1,0,0} };		// t0 = func_tab[1] (c0)==> t0 = fib(c0)
 	prg_main.instrs[1] = { encode_op(F_PRI,T_TEMP,0,0),{0,0,0} };				// print t0
 	prg_main.prg_len = 2;
 
@@ -124,9 +124,20 @@ void init_code()
 	fib.prg_len = 9;
 }
 
-#define ARG_I(x) curr_instr.args[x]
+// Access to register i of the current instruction
+#define ARG_I(i) curr_instr.args[i]
+
+// temporary variables for each scope
 #define TEMP prg->scope.regs
+
+// constant values of the current function
 #define CONST prg->const_val
+
+// Execute program
+// Prg = the program to be executed 
+// IN : pointer to inpout argument
+// OUT : pointer to function output
+
 void exec(Prog* prg,double *IN,double *OUT)
 {
 	size_t ip = 0;
