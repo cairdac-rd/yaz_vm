@@ -1,6 +1,3 @@
-// my_vm.cpp : This file contains the 'main' function. Program execution begins and ends there.
-//
-
 #include <iostream>
 #include <vector>
 #include <time.h>
@@ -10,15 +7,19 @@
 //#define MYDEBUG(x) x
 #define MYDEBUG(x) 
 using namespace std;
+//operation type
 enum OP { F_SET, F_SUB, F_ADD, F_JMPNF, F_RET, F_LT, F_CALL, F_PRI};
+//Argument type
 enum VAR_TYPE { T_CONST=1, T_TEMP, T_ARG_IN, T_ARG_OUT, T_GLOB_VAR, T_STATIC, T_FUNC};
+
 struct Prog;
 
-typedef unsigned char reg_;
+//typedef unsigned char reg_;
 struct Instr
 {
-	size_t op;
+	size_t op;	// op code
 	size_t args[3];
+	//reg_ args[3]; // three register by operation
 };
 
 struct Scope
@@ -27,7 +28,7 @@ struct Scope
 };
 struct Prog
 {
-	Instr instrs[10];
+	Instr instrs[20];
 	int Static_vars[2];
 	double const_val[2];
 	size_t narg_in;
@@ -37,8 +38,10 @@ struct Prog
 	int prg_len;
 	Scope scope;
 };
+
 Prog prg_main;
 Prog fib;
+// function table
 Prog* func_tab[5];
 
 
@@ -105,18 +108,18 @@ void init_code()
 
 
 	prg_main.instrs[0] = { encode_op(F_CALL,T_FUNC,T_CONST,T_TEMP),{1,0,0} };		// t0 = func_tab[1] (c0)= fib(c0)
-	prg_main.instrs[1] = { encode_op(F_PRI,T_TEMP,0,0),{0,0,0} };					// print t0
+	prg_main.instrs[1] = { encode_op(F_PRI,T_TEMP,0,0),{0,0,0} };				// print t0
 	prg_main.prg_len = 2;
 
 	// y= fib(n)
 	fib.instrs[0] = { encode_op(F_LT,T_ARG_IN,T_CONST,T_TEMP),{0,1,0} };			// t0 = (n < c1)
-	fib.instrs[1] = { encode_op(F_JMPNF,T_TEMP,0,0),{0,4,0} };						// if (!t0) goto instruction 4
+	fib.instrs[1] = { encode_op(F_JMPNF,T_TEMP,0,0),{0,4,0} };				// if (!t0) goto instruction 4
 	fib.instrs[2] = { encode_op(F_SET,T_ARG_OUT,T_ARG_IN,0), {0,0,0 } };			// y=n
-	fib.instrs[3] = { encode_op(F_RET,0,0,0), {0,0,0 } };							// return
+	fib.instrs[3] = { encode_op(F_RET,0,0,0), {0,0,0 } };					// return
 	fib.instrs[4] = { encode_op(F_SUB,T_ARG_IN,T_CONST,T_TEMP),{0,0,0} };			// t0 = n - c0
-	fib.instrs[5] = { encode_op(F_CALL,0,T_TEMP,T_TEMP),{1,0,1} };					// t1 = fib(t0)
+	fib.instrs[5] = { encode_op(F_CALL,0,T_TEMP,T_TEMP),{1,0,1} };				// t1 = fib(t0)
 	fib.instrs[6] = { encode_op(F_SUB,T_ARG_IN,T_CONST,T_TEMP),{0,1,2} };			// t2 = n-c1
-	fib.instrs[7] = { encode_op(F_CALL,0,T_TEMP,T_TEMP),{1,2, 3 } };				// t3= fib(t2)
+	fib.instrs[7] = { encode_op(F_CALL,0,T_TEMP,T_TEMP),{1,2, 3 } };			// t3= fib(t2)
 	fib.instrs[8] = { encode_op(F_ADD,T_ARG_OUT,T_TEMP,T_TEMP),{0,1,3} };			// y= t1+t3
 	fib.prg_len = 9;
 }
