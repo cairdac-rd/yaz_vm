@@ -2,15 +2,18 @@
 #include <vector>
 #include <time.h>
 
-
+using namespace std;
 
 //#define MYDEBUG(x) x
 #define MYDEBUG(x) 
-using namespace std;
+
+#define DATA_TYPE double
+
+
 //operation type
-enum OP { F_SET, F_SUB, F_ADD, F_JMPNF, F_RET, F_LT, F_CALL, F_PRI};
+enum OP { F_SET, F_SUB, F_ADD, F_JMPNF, F_RET, F_LT, F_CALL, F_PRI };
 //Argument type
-enum VAR_TYPE { T_CONST=1, T_TEMP, T_ARG_IN, T_ARG_OUT, T_GLOB_VAR, T_STATIC, T_FUNC};
+enum VAR_TYPE { T_CONST = 1, T_TEMP, T_ARG_IN, T_ARG_OUT, T_GLOB_VAR, T_STATIC, T_FUNC };
 
 struct Prog;
 
@@ -24,13 +27,13 @@ struct Instr
 
 struct Scope
 {
-	double *regs;
+	double* regs;
 };
 struct Prog
 {
 	Instr instrs[20];
-	int Static_vars[2];
-	double const_val[2];
+	DATA_TYPE Static_vars[2];
+	DATA_TYPE const_val[2];
 	size_t narg_in;
 	size_t narg_out;
 	size_t n_temps;
@@ -48,14 +51,15 @@ Prog* func_tab[5];
 #define USE_POOL 1
 #ifdef USE_POOL
 
-std::vector<double > TempPool;
+//Scope Temp variables pool
+std::vector<DATA_TYPE> TempPool;
 size_t pool_p = 0;
 
 void AllocTemps(Prog* prg)
 {
-	prg->scope = {0};
+	prg->scope = { 0 };
 
-	if (prg->n_temps >0)
+	if (prg->n_temps > 0)
 	{
 		prg->scope.regs = &TempPool[pool_p];
 		pool_p += prg->n_temps;
@@ -63,7 +67,7 @@ void AllocTemps(Prog* prg)
 }
 void FreeTemps(Prog* prg)
 {
-	if (prg->n_temps >0)
+	if (prg->n_temps > 0)
 	{
 		pool_p -= prg->n_temps;
 	}
@@ -73,13 +77,13 @@ void AllocTemps(Prog* prg)
 {
 	prg->scope = {};
 	if (prg->n_regs > 0)
-		prg->scope.regs = new double[prg->n_regs];
+		prg->scope.regs = new DATA_TYPE[prg->n_temps];
 }
 
 void FreeTemps(Prog* prg)
 {
 
-	if (prg->n_regs > 0)
+	if (prg->n_temps > 0)
 		delete[] prg->scope.regs;
 
 }
@@ -90,7 +94,7 @@ void FreeTemps(Prog* prg)
 
 void init_code()
 {
-	
+
 	func_tab[0] = &prg_main;
 	func_tab[1] = &fib;
 
@@ -107,7 +111,7 @@ void init_code()
 	prg_main.const_val[0] = 36;//c0
 
 
-	prg_main.instrs[0] = { encode_op(F_CALL,T_FUNC,T_CONST,T_TEMP),{1,0,0} };		// t0 = func_tab[1] (c0)==> t0 = fib(c0)
+	prg_main.instrs[0] = { encode_op(F_CALL,T_FUNC,T_CONST,T_TEMP),{1,0,0} };		// t0 = func_tab[1](c0) => t0 = fib(c0)
 	prg_main.instrs[1] = { encode_op(F_PRI,T_TEMP,0,0),{0,0,0} };				// print t0
 	prg_main.prg_len = 2;
 
@@ -138,100 +142,100 @@ void init_code()
 // IN : pointer to inpout argument
 // OUT : pointer to function output
 
-void exec(Prog* prg,double *IN,double *OUT)
+void exec(Prog* prg, double* IN, double* OUT)
 {
 	size_t ip = 0;
 	Scope old_scope = prg->scope;
-	
+
 	AllocTemps(prg);
 	while (ip < prg->prg_len)
 	{
 		Instr curr_instr = prg->instrs[ip++];
 		switch (curr_instr.op)
 		{
-		
+
 		case encode_op(F_SET, T_ARG_OUT, T_ARG_IN, 0):
-			
-			*OUT= *IN;
+
+			*OUT = *IN;
 			MYDEBUG(cout << "F_SET_O_I : " << *OUT << " = " << *IN << endl;)
-			break;
+				break;
 
 		case encode_op(F_LT, T_ARG_IN, T_CONST, T_TEMP):
 			TEMP[ARG_I(2)] = *IN < CONST[ARG_I(1)];
-			MYDEBUG(cout << "F_LT_I_C_T : " << TEMP[ARG_I(2)] << " = ( " << *IN << " < " << CONST[ARG_I(1)] << " )" <<endl;)
-			break;
+			MYDEBUG(cout << "F_LT_I_C_T : " << TEMP[ARG_I(2)] << " = ( " << *IN << " < " << CONST[ARG_I(1)] << " )" << endl;)
+				break;
 
 		case  encode_op(F_JMPNF, T_TEMP, 0, 0):
-			MYDEBUG(cout << "F_JMPNF_T : if ! " << TEMP[ARG_I(0)] << " goto  " << (int)ARG_I(1)  << endl;)
-			if (!TEMP[ARG_I(0)])
-				ip = ARG_I(1);
+			MYDEBUG(cout << "F_JMPNF_T : if ! " << TEMP[ARG_I(0)] << " goto  " << (int)ARG_I(1) << endl;)
+				if (!TEMP[ARG_I(0)])
+					ip = ARG_I(1);
 			break;
 
 		case F_RET:
-			MYDEBUG(cout << "F_RET : goto  " << prg->prg_len  << endl;)
-			ip = prg->prg_len;
+			MYDEBUG(cout << "F_RET : goto  " << prg->prg_len << endl;)
+				ip = prg->prg_len;
 			break;
 
 
 		case encode_op(F_ADD, T_ARG_OUT, T_TEMP, T_TEMP):
-			
-			*OUT = TEMP[ARG_I(1)]+ TEMP[ARG_I(2)];
+
+			*OUT = TEMP[ARG_I(1)] + TEMP[ARG_I(2)];
 			MYDEBUG(cout << "F_ADD_O_T_T : " << *OUT << " = " << TEMP[ARG_I(1)] << " + " << TEMP[ARG_I(2)] << endl;)
-			break;
+				break;
 
 		case encode_op(F_SUB, T_ARG_IN, T_CONST, T_TEMP):
 			TEMP[ARG_I(2)] = *IN - CONST[ARG_I(1)];
 			MYDEBUG(cout << "F_SUB_I_C_T : " << TEMP[ARG_I(2)] << " = " << *IN << " - " << CONST[ARG_I(1)] << endl;)
-			break;
+				break;
 
 		case encode_op(F_PRI, T_TEMP, 0, 0):
 			MYDEBUG(cout << "F_PRINT : " << TEMP[ARG_I(0)] << endl;)
-			{
-				double r = TEMP[ARG_I(0)];
-				if (((long)r) == r)
-					cout << (long)r << endl;
-				else
-					cout << r << endl;
-			}
+		{
+			double r = TEMP[ARG_I(0)];
+			if (((long)r) == r)
+				cout << (long)r << endl;
+			else
+				cout << r << endl;
+		}
 			break;
 
 		case  encode_op(F_CALL, 0, T_TEMP, T_TEMP):
-			{	
+		{
 			MYDEBUG(cout << "F_CALL_T_T: func_tab( " << (int)ARG_I(0) << ") =f(" << TEMP[ARG_I(1)] << ")" << endl;)
-			exec(func_tab[ARG_I(0)], &TEMP[ARG_I(1)], &TEMP[ARG_I(2)]);
+				exec(func_tab[ARG_I(0)], &TEMP[ARG_I(1)], &TEMP[ARG_I(2)]);
 			MYDEBUG(cout << "Result = ( " << TEMP[ARG_I(2)] << ")" << endl;)
-			}
-			break;
+		}
+		break;
 		case encode_op(F_CALL, T_FUNC, T_CONST, T_TEMP):
 		{
 			MYDEBUG(cout << "F_CALL_C_T: func_tab( " << (int)ARG_I(0) << ") =f(" << CONST[ARG_I(1)] << ")" << endl;)
-			exec(func_tab[ARG_I(0)], &CONST[ARG_I(1)], &TEMP[ARG_I(2)]);
-			MYDEBUG(cout << "Result = ( " << TEMP[ARG_I(2)]  << ")" << endl;)
+				exec(func_tab[ARG_I(0)], &CONST[ARG_I(1)], &TEMP[ARG_I(2)]);
+			MYDEBUG(cout << "Result = ( " << TEMP[ARG_I(2)] << ")" << endl;)
 		}
 		break;
 		default:
 			cout << "Illegal operation code : " << curr_instr.op << endl;
 			return;
-			//break;
+
 		}
 	}
 
 	FreeTemps(prg);
 	prg->scope = old_scope;
 }
+
 int main()
 {
-	
-	clock_t start, end; 
+
+	clock_t start, end;
 	init_code();
 #ifdef USE_POOL
 	TempPool.resize(1000);
 #endif
 	start = clock();
-	exec(&prg_main,NULL,NULL);
+	exec(&prg_main, NULL, NULL);
 	end = clock();
 	double t = (end - start) * 1.0 / CLOCKS_PER_SEC;
 	cout << "Time = " << t << endl;
 
 }
-
