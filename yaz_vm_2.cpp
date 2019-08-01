@@ -22,7 +22,6 @@ struct Instr
 {
 	size_t op;	// op code
 	size_t args[3];
-	//reg_ args[3]; // three register by operation
 };
 
 struct Context
@@ -37,13 +36,12 @@ struct Prog
 	reg_  narg_in;
 	reg_  narg_out;
 	reg_  n_temps;
-	//reg_ n_const;
-	//size_t prg_len;
 	Context ctx;
 };
 
 Prog prg_main;
 Prog fib;
+
 // function table
 Prog* func_tab[5];
 
@@ -110,18 +108,18 @@ void init_code()
 
 
 	prg_main.instrs.push_back({ encode_op(F_CALL,T_FUNC,T_CONST,T_TEMP),{1,0,0} });		//(1) t0 = func_tab[1](c0) => t0 = fib(c0)
-	prg_main.instrs.push_back({ encode_op(F_PRI,T_TEMP,0,0),{0,0,0} });					//(2) print t0
+	prg_main.instrs.push_back({ encode_op(F_PRI,T_TEMP,0,0),{0,0,0} });			//(2) print t0
 
 	// y= fib(n)
-	fib.instrs.push_back({ encode_op(F_LT,T_ARG_IN,T_CONST,T_TEMP),{0,1,0} });			//(0) t0 = (n < c1)
-	fib.instrs.push_back({ encode_op(F_JMPNF,T_TEMP,0,0),{0,4,0} });					//(1) if (!t0) goto instruction 4
-	fib.instrs.push_back({ encode_op(F_SET,T_ARG_OUT,T_ARG_IN,0), {0,0,0} });			//(2) y=n
-	fib.instrs.push_back({ encode_op(F_RET,0,0,0), {0,0,0} });							//(3) return
-	fib.instrs.push_back({ encode_op(F_SUB,T_ARG_IN,T_CONST,T_TEMP),{0,0,0} });			//(4) t0 = n - c0
-	fib.instrs.push_back({ encode_op(F_CALL,T_FUNC,T_TEMP,T_TEMP),{1,0,0} });			//(5) t0 = fib(t0)
-	fib.instrs.push_back({ encode_op(F_SUB,T_ARG_IN,T_CONST,T_TEMP),{0,1,1} });			//(6) t1 = n-c1
-	fib.instrs.push_back({ encode_op(F_CALL,T_FUNC,T_TEMP,T_TEMP),{1,1,1} });			//(7) t1= fib(t1)
-	fib.instrs.push_back({ encode_op(F_ADD,T_ARG_OUT,T_TEMP,T_TEMP),{0,0,1} });			//(8) y= t0+t1
+	fib.instrs.push_back({ encode_op(F_LT,T_ARG_IN,T_CONST,T_TEMP),{0,1,0} });		//(0) t0 = (n < c1)
+	fib.instrs.push_back({ encode_op(F_JMPNF,T_TEMP,0,0),{0,4,0} });			//(1) if (!t0) goto instruction 4
+	fib.instrs.push_back({ encode_op(F_SET,T_ARG_OUT,T_ARG_IN,0), {0,0,0} });		//(2) y=n
+	fib.instrs.push_back({ encode_op(F_RET,0,0,0), {0,0,0} });				//(3) return
+	fib.instrs.push_back({ encode_op(F_SUB,T_ARG_IN,T_CONST,T_TEMP),{0,0,0} });		//(4) t0 = n - c0
+	fib.instrs.push_back({ encode_op(F_CALL,T_FUNC,T_TEMP,T_TEMP),{1,0,0} });		//(5) t0 = fib(t0)
+	fib.instrs.push_back({ encode_op(F_SUB,T_ARG_IN,T_CONST,T_TEMP),{0,1,1} });		//(6) t1 = n-c1
+	fib.instrs.push_back({ encode_op(F_CALL,T_FUNC,T_TEMP,T_TEMP),{1,1,1} });		//(7) t1= fib(t1)
+	fib.instrs.push_back({ encode_op(F_ADD,T_ARG_OUT,T_TEMP,T_TEMP),{0,0,1} });		//(8) y= t0+t1
 
 }
 
