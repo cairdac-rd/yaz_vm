@@ -14,7 +14,7 @@ yaz_vm2.cpp code is slower than yaz_vm.cpp code.
 
 This mean idea is to provide a maximum of information about the arguments during code generation.
 During execution no special instructions are dedicated to decode the instruction.
-The code is repated for each OPCODE to access the different argument types.
+The code is repeated for each OPCODE to access the different argument types.
 
 
 ## Building 
